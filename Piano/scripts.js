@@ -45,10 +45,10 @@ keys.forEach((key) => {
 checkBox.addEventListener('change', ({ target }) => {
   if (target.checked) {
     Switcher.classList.add('switcher--active');
-    KeySection.classList.remove('disabled--keys');
+    KeySection.classList.remove('disabled-keys');
     return;
   }
   
   Switcher.classList.remove('switcher--active');
-  KeySection.classList.add('disabled--keys');
+  KeySection.classList.add('disabled-keys');
 });
