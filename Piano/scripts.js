@@ -4,7 +4,7 @@ const Switcher = document.querySelector('.switcher');
 const KeySection = document.querySelector('.piano__keys');
 
 const playNote = (note) => {
-  const audio = new Audio(`../notes/${note}.wav`);
+  const audio = new Audio(`notes/${note}.wav`);
   audio.currentTime = 0;
   audio.play();
 };
