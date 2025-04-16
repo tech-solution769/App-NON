@@ -1,142 +1,277 @@
-<!DOCTYPE html><html lang="pt">
+<!DOCTYPE html>
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Cobrinha</title>
-    <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        canvas { background: #000; display: block; margin: auto; }
-        .controls { display: flex; justify-content: center; margin-top: 10px; }
-        button { padding: 10px; font-size: 18px; margin: 5px; }
-        .menu, .countdown-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        .game-container { display: none; }
-        .countdown-container { font-size: 50px; display: none; }
-        #score { font-size: 20px; color: white; margin-top: 10px; }
-    </style>
-</head>
-<body>
-    <div id="menu" class="menu">
-        <h1>Jogo da Cobrinha</h1>
-        <button onclick="startCountdown()">Iniciar Jogo</button>
-    </div>
-    <div id="countdownContainer" class="countdown-container">
-        <p id="countdown">3</p>
-    </div>
-    <div id="gameContainer" class="game-container">
-        <h1>Jogo da Cobrinha</h1>
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
-        <div class="controls">
-            <button onclick="changeDirection('up')">⬆️</button>
-        </div>
-        <div class="controls">
-            <button onclick="changeDirection('left')">⬅️</button>
-            <button onclick="changeDirection('down')">⬇️</button>
-            <button onclick="changeDirection('right')">➡️</button>
-        </div>
-        <p id="score">Pontuação: 0</p>
-    </div>
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const menu = document.getElementById("menu");
-        const gameContainer = document.getElementById("gameContainer");
-        const countdownContainer = document.getElementById("countdownContainer");
-        const countdownText = document.getElementById("countdown");
-        const scoreText = document.getElementById("score");const box = 20;
-    let snake;
-    let food;
-    let direction;
-    let game;
-    let score;
-
-    function startCountdown() {
-        menu.style.display = "none";
-        countdownContainer.style.display = "flex";
-        let counter = 3;
-        countdownText.innerText = counter;
-        
-        let countdown = setInterval(() => {
-            counter--;
-            countdownText.innerText = counter;
-            if (counter === 0) {
-                clearInterval(countdown);
-                countdownContainer.style.display = "none";
-                startGame();
-            }
-        }, 1000);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jogo da Cobrinha</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #111, #000);
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
 
-    function startGame() {
-        gameContainer.style.display = "block";
-        
-        snake = [{ x: 10 * box, y: 10 * box }];
-        food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
-        direction = "right";
-        score = 0;
-        scoreText.innerText = "Pontuação: " + score;
-        game = setInterval(gameLoop, 150);
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+    canvas {
+      background: #000;
+      border: 2px solid #444;
+      display: none;
+      image-rendering: pixelated;
+    }
+
+    .controls {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .controls button {
+      font-size: 24px;
+      margin: 5px;
+      padding: 10px 15px;
+      border: none;
+      background: #333;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .controls button:hover {
+      background: #555;
+    }
+
+    #scoreBoard {
+      margin-top: 10px;
+      font-size: 18px;
+      display: none;
+    }
+
+    #gameOver {
+      position: absolute;
+      font-size: 32px;
+      color: red;
+      display: none;
+    }
+
+    #menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #menu h1 {
+      font-size: 48px;
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #startBtn {
+      font-size: 28px;
+      background: #0ff;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: #000;
+      border: none;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    #startBtn:hover {
+      background: #00cccc;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>JOGO DA COBRINHA</h1>
+    <button id="startBtn">Iniciar Jogo</button>
+  </div>
+
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div id="gameOver">Game Over!</div>
+  <div class="controls">
+    <button onclick="changeDirection('up')">⬆️</button>
+  </div>
+  <div class="controls">
+    <button onclick="changeDirection('left')">⬅️</button>
+    <button onclick="changeDirection('down')">⬇️</button>
+    <button onclick="changeDirection('right')">➡️</button>
+  </div>
+  <div id="scoreBoard">Pontuação: 0 | Recorde: 0</div>
+
+  <audio id="bgMusic" src="sons/bgmusic.mp3" preload="auto" loop></audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreBoard = document.getElementById("scoreBoard");
+    const gameOverText = document.getElementById("gameOver");
+    const bgMusic = document.getElementById("bgMusic");
+    const startBtn = document.getElementById("startBtn");
+    const menu = document.getElementById("menu");
+    const controlButtons = document.querySelectorAll('.controls');
+
+    const box = 20;
+    let snake = [];
+    let food;
+    let direction = "right";
+    let score = 0;
+    let bestScore = localStorage.getItem("bestScore") || 0;
+    let game;
+    let paused = false;
+
+    startBtn.onclick = () => {
+      menu.style.display = "none";
+      canvas.style.display = "block";
+      scoreBoard.style.display = "block";
+      controlButtons.forEach(el => el.style.display = "flex");
+      if (bgMusic.paused) bgMusic.play();
+      initGame();
+    };
+
+    function initGame() {
+      snake = [{ x: 9 * box, y: 9 * box }];
+      direction = "right";
+      food = {
+        x: Math.floor(Math.random() * 20) * box,
+        y: Math.floor(Math.random() * 20) * box
+      };
+      score = 0;
+      updateScore();
+      gameOverText.style.display = "none";
+      clearInterval(game);
+      game = setInterval(gameLoop, 100);
     }
 
     function draw() {
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = "red";
-        ctx.fillRect(food.x, food.y, box, box);
-        
-        ctx.fillStyle = "lime";
-        snake.forEach(segment => ctx.fillRect(segment.x, segment.y, box, box));
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.shadowColor = "#0ff";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#0ff";
+      ctx.fillRect(food.x, food.y, box, box);
+      ctx.restore();
+
+      ctx.fillStyle = "#0f0";
+      snake.forEach((segment, index) => {
+        ctx.fillRect(segment.x, segment.y, box, box);
+        if (index === 0) {
+          ctx.strokeStyle = "#fff";
+          ctx.strokeRect(segment.x, segment.y, box, box);
+        }
+      });
     }
-    
+
     function update() {
-        let head = { x: snake[0].x, y: snake[0].y };
-        if (direction === "right") head.x += box;
-        if (direction === "left") head.x -= box;
-        if (direction === "up") head.y -= box;
-        if (direction === "down") head.y += box;
-        
-        if (head.x === food.x && head.y === food.y) {
-            food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
-            score++;
-            scoreText.innerText = "Pontuação: " + score;
-        } else {
-            snake.pop();
+      const head = { x: snake[0].x, y: snake[0].y };
+
+      switch (direction) {
+        case "right": head.x += box; break;
+        case "left": head.x -= box; break;
+        case "up": head.y -= box; break;
+        case "down": head.y += box; break;
+      }
+
+      if (
+        head.x < 0 || head.x >= canvas.width ||
+        head.y < 0 || head.y >= canvas.height ||
+        snake.some((s, i) => i !== 0 && s.x === head.x && s.y === head.y)
+      ) {
+        clearInterval(game);
+        gameOverText.style.display = "block";
+        if (score > bestScore) {
+          bestScore = score;
+          localStorage.setItem("bestScore", bestScore);
         }
-        
-        if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height || snake.some(seg => seg.x === head.x && seg.y === head.y)) {
-            clearInterval(game);
-            alert("Game Over! Sua pontuação foi: " + score);
-            resetGame();
-            return;
-        }
-        
-        snake.unshift(head);
-    }
+        setTimeout(initGame, 1500);
+        return;
+      }
 
-    function resetGame() {
-        gameContainer.style.display = "none";
-        menu.style.display = "flex";
-    }
+      snake.unshift(head);
 
-    function changeDirection(newDirection) {
-        if (newDirection === "up" && direction !== "down") direction = "up";
-        if (newDirection === "down" && direction !== "up") direction = "down";
-        if (newDirection === "left" && direction !== "right") direction = "left";
-        if (newDirection === "right" && direction !== "left") direction = "right";
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        updateScore();
+        playEatEffect();
+        food = {
+          x: Math.floor(Math.random() * 20) * box,
+          y: Math.floor(Math.random() * 20) * box
+        };
+      } else {
+        snake.pop();
+      }
     }
-
-    document.addEventListener("keydown", event => {
-        if (event.key === "ArrowUp") changeDirection("up");
-        if (event.key === "ArrowDown") changeDirection("down");
-        if (event.key === "ArrowLeft") changeDirection("left");
-        if (event.key === "ArrowRight") changeDirection("right");
-    });
 
     function gameLoop() {
+      if (!paused) {
         update();
         draw();
+      }
     }
-</script>
 
+    function changeDirection(newDir) {
+      const opposites = {
+        up: "down",
+        down: "up",
+        left: "right",
+        right: "left"
+      };
+      if (direction !== opposites[newDir]) {
+        direction = newDir;
+      }
+    }
+
+    function updateScore() {
+      scoreBoard.innerText = `Pontuação: ${score} | Recorde: ${bestScore}`;
+    }
+
+    function playEatEffect() {
+      const eatEffect = new Audio("sons/comer.wav");
+      eatEffect.volume = 0.4;
+      eatEffect.playbackRate = 1.6;
+      eatEffect.play().catch(e => console.warn("Erro ao tocar som:", e));
+    }
+
+    document.addEventListener("keydown", e => {
+      const keyMap = {
+        ArrowUp: "up",
+        ArrowDown: "down",
+        ArrowLeft: "left",
+        ArrowRight: "right",
+        w: "up",
+        s: "down",
+        a: "left",
+        d: "right"
+      };
+      if (keyMap[e.key]) changeDirection(keyMap[e.key]);
+      if (e.key.toLowerCase() === "p") {
+        paused = !paused;
+        if (!paused) game = setInterval(gameLoop, 100);
+      }
+    });
+
+    canvas.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      bgMusic.volume = Math.min(1, Math.max(0, bgMusic.volume + (e.deltaY < 0 ? 0.05 : -0.05)));
+    });
+  </script>
 </body>
 </html>
